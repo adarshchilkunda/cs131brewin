@@ -12,23 +12,43 @@ class Interpreter(InterpreterBase):
             ErrorType.NAME_ERROR,
             message
         )
+    def type_error_helper(self, message):
+        super().error(
+            ErrorType.TYPE_ERROR,
+            message
+        )
 
     def var_helper(self, varName):
         if varName not in self.vars:
             self.error_helper(f"Variable {varName} was not defined")
         return self.vars[varName]
+
+    def custom_print(self, *messages):
+        finalString = ""
+        for message in messages:
+            finalString += str(message)
+        super().output(finalString)
     
+    def inputi(self, prompt=None):
+        if prompt is not None:
+            super().output(prompt)
+        return int(super().get_input())
+
     def function_helper(self, expression):
         args = expression.get("args")
         for i in range(len(args)):
             args[i] = self.evaluate_expression(args[i])
         name = expression.get("name")
         if name == "print":                 # todo: make a custom print function; call super output function
-            print(*args)
+            self.custom_print(*args)
             return
-        elif name != "inputi":
+        elif name == "inputi":
+            if len(args) > 1:
+                self.error_helper(f"No inputi() function found that takes > 1 parameter")
+            self.inputi(args[0])
+        else:
             self.error_helper(f"Function {name} has not been defined")
-        globals()[expression.get("name")](*args)
+        # globals()[name](*args)
 
     def evaluate_expression(self, expression):  # expression can be an Expression, Variable, or Value node
         t = expression.elem_type
@@ -38,16 +58,22 @@ class Interpreter(InterpreterBase):
             return expression.get("val")
         # expression node
         if t=="+":
-            return self.evaluate_expression(expression.get("op1")) + self.evaluate_expression(expression.get("op2"))
+            op1 = self.evaluate_expression(expression.get("op1"))
+            op2 = self.evaluate_expression(expression.get("op2"))
+            if not isinstance(op1, int) or not isinstance(op2, int):
+                self.type_error_helper("Incompatible types for arithmetic operation")
+            return op1 + op2
         if t=="-":
-            return self.evaluate_expression(expression.get("op1")) - self.evaluate_expression(expression.get("op2"))
+            op1 = self.evaluate_expression(expression.get("op1"))
+            op2 = self.evaluate_expression(expression.get("op2"))
+            if not isinstance(op1, int) or not isinstance(op2, int):
+                self.type_error_helper("Incompatible types for arithmetic operation")
+            return op1 - op2
         if t=="fcall":
             self.function_helper(expression)
     
     def run(self, program):
         parsed_program = parse_program(program)
-        # print(parsed_program)
-        # print("--------")
         for element in parsed_program.get("functions"):
             name = element.get("name")
             # only one function for now; return an error if that function is not main
