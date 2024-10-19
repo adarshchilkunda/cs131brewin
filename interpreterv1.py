@@ -77,6 +77,9 @@ class Interpreter(InterpreterBase):
                 self.type_error_helper("Incompatible types for arithmetic operation")
             return op1 - op2
         if t=="fcall":
+            # for project 1: only inputi allowed to be called in an expression
+            # if expression.get("name") != "inputi":
+            #     return 
             return self.function_helper(expression)
     
     def run(self, program):
@@ -98,9 +101,9 @@ class Interpreter(InterpreterBase):
                         self.error_helper(f"Variable {varName} defined more than once")
                 elif stateType == "=":                  # assign expression to variable
                     varName = statement.get("name")
-                    rhsNode = statement.get("expression")
                     if varName not in self.vars:
-                        super().error()
+                        self.error_helper(f"Variable {varName} was not defined")
+                    rhsNode = statement.get("expression")
                     self.vars[varName] = self.evaluate_expression(rhsNode)
                 elif stateType == "fcall":
                     self.function_helper(statement)
@@ -115,6 +118,28 @@ if __name__ == "__main__":
     print(3 + 5);
     print(4 + inputi("enter a number: "));
     print(3 - (3 + (2 + inputi())));
+    print(5);
+    print("hello world!");
+    var b;
+    b = 2;
+    var a;
+    a = 3;        
+    print("the answer is:", b);
+    print("the answer is: ", b + (a - 5), "!");	
+    var foo;
+ 	var _bar;
+    var bletch;
+    print("var deffed");	
+    foo = 10;
+	bar = 3 + foo;
+	bletch = 3 - (5 + 2);
+    var prompt;
+    var boo;
+	prompt = "enter a number: ";
+	boo = inputi();
+	boo = inputi("Enter a number: ");
+
+
 }
 """
 )
