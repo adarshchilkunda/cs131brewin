@@ -32,7 +32,9 @@ class Interpreter(InterpreterBase):
     def inputi(self, prompt=None):
         if prompt is not None:
             super().output(prompt)
-        return int(super().get_input())
+        inp = super().get_input()
+        intInp = int(inp)
+        return intInp
 
     def function_helper(self, expression):
         args = expression.get("args")
@@ -43,9 +45,12 @@ class Interpreter(InterpreterBase):
             self.custom_print(*args)
             return
         elif name == "inputi":
+            print("args:" + str(args))
             if len(args) > 1:
                 self.error_helper(f"No inputi() function found that takes > 1 parameter")
-            self.inputi(args[0])
+            if len(args) == 1:
+                return self.inputi((args[0]))
+            return self.inputi()
         else:
             self.error_helper(f"Function {name} has not been defined")
         # globals()[name](*args)
@@ -61,6 +66,8 @@ class Interpreter(InterpreterBase):
             op1 = self.evaluate_expression(expression.get("op1"))
             op2 = self.evaluate_expression(expression.get("op2"))
             if not isinstance(op1, int) or not isinstance(op2, int):
+                print(type(op1))
+                print(type(op2))
                 self.type_error_helper("Incompatible types for arithmetic operation")
             return op1 + op2
         if t=="-":
@@ -70,7 +77,7 @@ class Interpreter(InterpreterBase):
                 self.type_error_helper("Incompatible types for arithmetic operation")
             return op1 - op2
         if t=="fcall":
-            self.function_helper(expression)
+            return self.function_helper(expression)
     
     def run(self, program):
         parsed_program = parse_program(program)
@@ -105,6 +112,9 @@ if __name__ == "__main__":
     var x;
     x = 5 + 6;
     print("The sum is: ", x);
+    print(3 + 5);
+    print(4 + inputi("enter a number: "));
+    print(3 - (3 + (2 + inputi())));
 }
 """
 )
